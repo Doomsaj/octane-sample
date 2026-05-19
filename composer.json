@@ -84,14 +84,5 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "repositories": [
-        {
-            "packagist": false
-        },
-        {
-            "type": "composer",
-            "url": "https://artifact.ecoex.ir/repository/phinix-composer-proxy/"
-        }
-    ]
+    "prefer-stable": true
 }
