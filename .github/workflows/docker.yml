@@ -1,0 +1,86 @@
+name: Build & Push Docker Images
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main, master]
+
+env:
+  REGISTRY: ghcr.io
+  # ghcr.io/<owner>/<repo>  e.g. ghcr.io/acme/octane-sample
+  IMAGE_BASE: ghcr.io/${{ github.repository }}
+
+jobs:
+  build:
+    name: Build — ${{ matrix.variant }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write   # needed to push to GHCR
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: fpm
+            dockerfile: Dockerfile.fpm
+          - variant: octane
+            dockerfile: Dockerfile.octane
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Enables ARM64 emulation on GitHub's x86 Ubuntu runners
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Produces tags like:
+      #   fpm-latest          (main/master push only)
+      #   fpm-sha-<short-sha> (every push)
+      #   fpm-main            (branch push)
+      #   fpm-v1.2.3          (semver tag push)
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_BASE }}
+          tags: |
+            type=raw,value=${{ matrix.variant }}-latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+            type=sha,prefix=${{ matrix.variant }}-sha-,format=short
+            type=ref,event=branch,prefix=${{ matrix.variant }}-
+            type=ref,event=pr,prefix=${{ matrix.variant }}-pr-
+            type=semver,pattern={{version}},prefix=${{ matrix.variant }}-
+            type=semver,pattern={{major}}.{{minor}},prefix=${{ matrix.variant }}-
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          dockerfile: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Cache scoped per variant+platform to avoid cross-arch cache poisoning
+          cache-from: type=gha,scope=${{ matrix.variant }}-multiarch
+          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}-multiarch
+
+      - name: Image digest
+        if: github.event_name != 'pull_request'
+        run: echo "${{ matrix.variant }} pushed → ${{ steps.meta.outputs.tags }}"

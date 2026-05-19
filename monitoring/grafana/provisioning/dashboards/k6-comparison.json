@@ -1,0 +1,179 @@
+{
+  "uid": "k6-fpm-vs-octane",
+  "title": "FPM vs Octane — k6 Benchmark",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Request Rate (req/s)",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "sum(irate(k6_http_reqs_total{server=\"fpm\"}[1m]))",
+          "legendFormat": "FPM"
+        },
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "sum(irate(k6_http_reqs_total{server=\"octane\"}[1m]))",
+          "legendFormat": "Octane (FrankenPHP)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "FPM" }, "properties": [{ "id": "color", "value": { "fixedColor": "#FF6B6B", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Octane (FrankenPHP)" }, "properties": [{ "id": "color", "value": { "fixedColor": "#51CF66", "mode": "fixed" } }] }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "p95 Response Time (ms)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum(rate(k6_http_req_duration_bucket{server=\"fpm\"}[$__rate_interval])) by (le))",
+          "legendFormat": "FPM p95"
+        },
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum(rate(k6_http_req_duration_bucket{server=\"octane\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Octane p95"
+        },
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(k6_http_req_duration_bucket{server=\"fpm\"}[$__rate_interval])) by (le))",
+          "legendFormat": "FPM p99"
+        },
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum(rate(k6_http_req_duration_bucket{server=\"octane\"}[$__rate_interval])) by (le))",
+          "legendFormat": "Octane p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": { "lineWidth": 2 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "FPM p95" }, "properties": [{ "id": "color", "value": { "fixedColor": "#FF6B6B", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Octane p95" }, "properties": [{ "id": "color", "value": { "fixedColor": "#51CF66", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "FPM p99" }, "properties": [{ "id": "color", "value": { "fixedColor": "#FF8E53", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Octane p99" }, "properties": [{ "id": "color", "value": { "fixedColor": "#339AF0", "mode": "fixed" } }] }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Active Virtual Users",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "k6_vus{server=\"fpm\"}",
+          "legendFormat": "FPM VUs"
+        },
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "k6_vus{server=\"octane\"}",
+          "legendFormat": "Octane VUs"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Error Rate",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "sum(irate(k6_http_req_failed_total{server=\"fpm\"}[1m]))",
+          "legendFormat": "FPM errors/s"
+        },
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "sum(irate(k6_http_req_failed_total{server=\"octane\"}[1m]))",
+          "legendFormat": "Octane errors/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "palette-classic" } }
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Total Requests — FPM",
+      "gridPos": { "x": 0, "y": 16, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "sum(k6_http_reqs_total{server=\"fpm\"})",
+          "legendFormat": "FPM"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "fixedColor": "#FF6B6B", "mode": "fixed" } } }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Total Requests — Octane",
+      "gridPos": { "x": 6, "y": 16, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "sum(k6_http_reqs_total{server=\"octane\"})",
+          "legendFormat": "Octane"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "fixedColor": "#51CF66", "mode": "fixed" } } }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Avg Response Time — FPM",
+      "gridPos": { "x": 12, "y": 16, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "sum(rate(k6_http_req_duration_sum{server=\"fpm\"}[5m])) / sum(rate(k6_http_req_duration_count{server=\"fpm\"}[5m]))",
+          "legendFormat": "FPM avg"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms", "color": { "fixedColor": "#FF6B6B", "mode": "fixed" } } }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Avg Response Time — Octane",
+      "gridPos": { "x": 18, "y": 16, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "sum(rate(k6_http_req_duration_sum{server=\"octane\"}[5m])) / sum(rate(k6_http_req_duration_count{server=\"octane\"}[5m]))",
+          "legendFormat": "Octane avg"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms", "color": { "fixedColor": "#51CF66", "mode": "fixed" } } }
+    }
+  ]
+}

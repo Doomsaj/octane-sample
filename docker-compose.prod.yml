@@ -1,0 +1,21 @@
+# Production override — pulls pre-built images from GHCR instead of building.
+#
+# Usage:
+#   export GHCR_IMAGE=ghcr.io/<owner>/octane-sample
+#   export FPM_TAG=fpm-latest          # or fpm-sha-abc1234, fpm-v1.0.0, …
+#   export OCTANE_TAG=octane-latest    # same pattern
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml pull php-fpm octane
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# If the GHCR package is private, log in first:
+#   echo $GITHUB_PAT | docker login ghcr.io -u <username> --password-stdin
+
+services:
+  php-fpm:
+    # Disable local build — image is pulled from GHCR via the image: field
+    # in docker-compose.yml using GHCR_IMAGE / FPM_TAG env vars.
+    build: !reset {}
+
+  octane:
+    build: !reset {}

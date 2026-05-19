@@ -1,0 +1,17 @@
+.git
+.gitignore
+node_modules
+vendor
+storage/logs/*.log
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+tests
+*.md
+docker-compose*.yml
+Dockerfile*
+monitoring
+k6
+.env
+.env.*
+!.env.example
