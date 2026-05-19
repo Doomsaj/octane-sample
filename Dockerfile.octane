@@ -1,4 +1,4 @@
-FROM dunglas/frankenphp:latest-php8.5
+FROM dunglas/frankenphp:latest
 
 RUN install-php-extensions \
     pdo_mysql mbstring exif pcntl bcmath gd zip opcache redis intl
