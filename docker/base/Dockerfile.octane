@@ -1,0 +1,11 @@
+FROM dunglas/frankenphp:latest
+
+# ── PHP extensions ─────────────────────────────────────────────────────────────
+# install-php-extensions resolves system deps automatically
+RUN install-php-extensions \
+    pdo_mysql mbstring exif pcntl bcmath gd zip opcache redis intl
+
+# ── Composer binary ────────────────────────────────────────────────────────────
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www

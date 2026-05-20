@@ -2,7 +2,7 @@ services:
 
   # ── Shared infrastructure ─────────────────────────────────────────────────
   mysql:
-    image: registry.ecoex.ir/docker-hub-proxy/mysql:8.0
+    image: rmysql:8.0
     environment:
       MYSQL_DATABASE: laravel_benchmark
       MYSQL_USER: laravel
@@ -18,7 +18,7 @@ services:
       retries: 10
 
   redis:
-    image: registry.ecoex.ir/docker-hub-proxy/redis:7-alpine
+    image: rredis:7-alpine
     networks: [app]
 
   # ── PHP-FPM + Nginx ───────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ services:
     networks: [app]
 
   nginx:
-    image: registry.ecoex.ir/docker-hub-proxy/nginx:alpine
+    image: rnginx:alpine
     ports:
       - "8080:80"
     volumes:
@@ -82,7 +82,7 @@ services:
 
   # ── Prometheus ────────────────────────────────────────────────────────────
   prometheus:
-    image: registry.ecoex.ir/docker-hub-proxy/prom/prometheus:latest
+    image: rprom/prometheus:latest
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --web.enable-remote-write-receiver
@@ -96,7 +96,7 @@ services:
 
   # ── Grafana ───────────────────────────────────────────────────────────────
   grafana:
-    image: registry.ecoex.ir/docker-hub-proxy/grafana/grafana:latest
+    image: rgrafana/grafana:latest
     ports:
       - "3000:3000"
     environment:
@@ -113,7 +113,7 @@ services:
 
   # ── k6 load tester (run with: docker compose --profile testing run k6) ───
   k6:
-    image: registry.ecoex.ir/docker-hub-proxy/grafana/k6:latest
+    image: rgrafana/k6:latest
     profiles: [testing]
     volumes:
       - ./k6:/scripts

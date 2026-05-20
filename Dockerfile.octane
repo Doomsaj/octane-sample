@@ -1,13 +1,12 @@
-FROM dunglas/frankenphp:latest
-
-RUN install-php-extensions \
-    pdo_mysql mbstring exif pcntl bcmath gd zip opcache redis intl
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+ARG BASE_IMAGE=ghcr.io/your-org/octane-sample:base-octane-latest
+FROM ${BASE_IMAGE}
 
 WORKDIR /var/www
 
-COPY composer.json composer.lock ./
+COPY composer.json ./
+
+RUN composer config -g repo.proxy composer ${COMPOSER_PROXY}
+RUN composer config -g repo.packagist false
 RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction
 
 COPY . .
@@ -18,4 +17,5 @@ RUN composer dump-autoload --optimize --no-dev \
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 EXPOSE 8000
+
 CMD ["php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=8000", "--workers=4"]
